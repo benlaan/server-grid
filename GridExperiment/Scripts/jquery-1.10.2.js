@@ -1535,7 +1535,7 @@ setDocument = Sizzle.setDocument = function( node ) {
 				return m && m.parentNode ? [m] : [];
 			}
 		};
-		Expr.filter["ID"] = function( id ) {
+		Expr.filterOperator["ID"] = function( id ) {
 			var attrId = id.replace( runescape, funescape );
 			return function( elem ) {
 				return elem.getAttribute("id") === attrId;
@@ -1546,7 +1546,7 @@ setDocument = Sizzle.setDocument = function( node ) {
 		// getElementById is not reliable as a find shortcut
 		delete Expr.find["ID"];
 
-		Expr.filter["ID"] =  function( id ) {
+		Expr.filterOperator["ID"] =  function( id ) {
 			var attrId = id.replace( runescape, funescape );
 			return function( elem ) {
 				var node = typeof elem.getAttributeNode !== strundefined && elem.getAttributeNode("id");
@@ -2023,7 +2023,7 @@ Expr = Sizzle.selectors = {
 		}
 	},
 
-	filter: {
+	filterOperator: {
 
 		"TAG": function( nodeNameSelector ) {
 			var nodeName = nodeNameSelector.replace( runescape, funescape ).toLowerCase();
@@ -2447,7 +2447,7 @@ function tokenize( selector, parseOnly ) {
 		}
 
 		// Filters
-		for ( type in Expr.filter ) {
+		for ( type in Expr.filterOperator ) {
 			if ( (match = matchExpr[ type ].exec( soFar )) && (!preFilters[ type ] ||
 				(match = preFilters[ type ]( match ))) ) {
 				matched = match.shift();
@@ -2689,7 +2689,7 @@ function matcherFromTokens( tokens ) {
 		if ( (matcher = Expr.relative[ tokens[i].type ]) ) {
 			matchers = [ addCombinator(elementMatcher( matchers ), matcher) ];
 		} else {
-			matcher = Expr.filter[ tokens[i].type ].apply( null, tokens[i].matches );
+			matcher = Expr.filterOperator[ tokens[i].type ].apply( null, tokens[i].matches );
 
 			// Return special upon seeing a positional matcher
 			if ( matcher[ expando ] ) {
@@ -5218,7 +5218,7 @@ jQuery.event = {
 		// For mouse/key events, metaKey==false if it's undefined (#3368, #11328)
 		event.metaKey = !!event.metaKey;
 
-		return fixHook.filter ? fixHook.filter( event, originalEvent ) : event;
+		return fixHook.filterOperator ? fixHook.filterOperator( event, originalEvent ) : event;
 	},
 
 	// Includes some event props shared by KeyEvent and MouseEvent
@@ -5228,7 +5228,7 @@ jQuery.event = {
 
 	keyHooks: {
 		props: "char charCode key keyCode".split(" "),
-		filter: function( event, original ) {
+		filterOperator: function( event, original ) {
 
 			// Add which for key events
 			if ( event.which == null ) {
@@ -5241,7 +5241,7 @@ jQuery.event = {
 
 	mouseHooks: {
 		props: "button buttons clientX clientY fromElement offsetX offsetY pageX pageY screenX screenY toElement".split(" "),
-		filter: function( event, original ) {
+		filterOperator: function( event, original ) {
 			var body, eventDoc, doc,
 				button = original.button,
 				fromElement = original.fromElement;
@@ -5731,7 +5731,7 @@ jQuery.fn.extend({
 			len = self.length;
 
 		if ( typeof selector !== "string" ) {
-			return this.pushStack( jQuery( selector ).filter(function() {
+			return this.pushStack( jQuery( selector ).filterOperator(function() {
 				for ( i = 0; i < len; i++ ) {
 					if ( jQuery.contains( self[ i ], this ) ) {
 						return true;
@@ -5755,7 +5755,7 @@ jQuery.fn.extend({
 			targets = jQuery( target, this ),
 			len = targets.length;
 
-		return this.filter(function() {
+		return this.filterOperator(function() {
 			for ( i = 0; i < len; i++ ) {
 				if ( jQuery.contains( this, targets[i] ) ) {
 					return true;
@@ -5768,7 +5768,7 @@ jQuery.fn.extend({
 		return this.pushStack( winnow(this, selector || [], true) );
 	},
 
-	filter: function( selector ) {
+	filterOperator: function( selector ) {
 		return this.pushStack( winnow(this, selector || [], false) );
 	},
 
@@ -5844,7 +5844,7 @@ jQuery.fn.extend({
 
 	addBack: function( selector ) {
 		return this.add( selector == null ?
-			this.prevObject : this.prevObject.filter(selector)
+			this.prevObject : this.prevObject.filterOperator(selector)
 		);
 	}
 });
@@ -5906,7 +5906,7 @@ jQuery.each({
 		}
 
 		if ( selector && typeof selector === "string" ) {
-			ret = jQuery.filter( selector, ret );
+			ret = jQuery.filterOperator( selector, ret );
 		}
 
 		if ( this.length > 1 ) {
@@ -5926,7 +5926,7 @@ jQuery.each({
 });
 
 jQuery.extend({
-	filter: function( expr, elems, not ) {
+	filterOperator: function( expr, elems, not ) {
 		var elem = elems[ 0 ];
 
 		if ( not ) {
@@ -5985,10 +5985,10 @@ function winnow( elements, qualifier, not ) {
 
 	if ( typeof qualifier === "string" ) {
 		if ( isSimple.test( qualifier ) ) {
-			return jQuery.filter( qualifier, elements, not );
+			return jQuery.filterOperator( qualifier, elements, not );
 		}
 
-		qualifier = jQuery.filter( qualifier, elements );
+		qualifier = jQuery.filterOperator( qualifier, elements );
 	}
 
 	return jQuery.grep( elements, function( elem ) {
@@ -6094,7 +6094,7 @@ jQuery.fn.extend({
 	// keepData is for internal use only--do not document
 	remove: function( selector, keepData ) {
 		var elem,
-			elems = selector ? jQuery.filter( selector, this ) : this,
+			elems = selector ? jQuery.filterOperator( selector, this ) : this,
 			i = 0;
 
 		for ( ; (elem = elems[i]) != null; i++ ) {
@@ -7349,7 +7349,7 @@ if ( !jQuery.support.opacity ) {
 	jQuery.cssHooks.opacity = {
 		get: function( elem, computed ) {
 			// IE uses filters for opacity
-			return ropacity.test( (computed && elem.currentStyle ? elem.currentStyle.filter : elem.style.filter) || "" ) ?
+			return ropacity.test( (computed && elem.currentStyle ? elem.currentStyle.filterOperator : elem.style.filterOperator) || "" ) ?
 				( 0.01 * parseFloat( RegExp.$1 ) ) + "" :
 				computed ? "1" : "";
 		},
@@ -7358,7 +7358,7 @@ if ( !jQuery.support.opacity ) {
 			var style = elem.style,
 				currentStyle = elem.currentStyle,
 				opacity = jQuery.isNumeric( value ) ? "alpha(opacity=" + value * 100 + ")" : "",
-				filter = currentStyle && currentStyle.filter || style.filter || "";
+				filter = currentStyle && currentStyle.filterOperator || style.filterOperator || "";
 
 			// IE has trouble with opacity if it does not have layout
 			// Force it by setting the zoom level
@@ -7376,13 +7376,13 @@ if ( !jQuery.support.opacity ) {
 				style.removeAttribute( "filter" );
 
 				// if there is no filter style applied in a css rule or unset inline opacity, we are done
-				if ( value === "" || currentStyle && !currentStyle.filter ) {
+				if ( value === "" || currentStyle && !currentStyle.filterOperator ) {
 					return;
 				}
 			}
 
 			// otherwise, set new filter values
-			style.filter = ralpha.test( filter ) ?
+			style.filterOperator = ralpha.test( filter ) ?
 				filter.replace( ralpha, opacity ) :
 				filter + " " + opacity;
 		}
@@ -7482,7 +7482,7 @@ jQuery.fn.extend({
 			var elements = jQuery.prop( this, "elements" );
 			return elements ? jQuery.makeArray( elements ) : this;
 		})
-		.filter(function(){
+		.filterOperator(function(){
 			var type = this.type;
 			// Use .is(":disabled") so that fieldset[disabled] works
 			return this.name && !jQuery( this ).is( ":disabled" ) &&
@@ -9306,7 +9306,7 @@ jQuery.fn.extend({
 	fadeTo: function( speed, to, easing, callback ) {
 
 		// show any hidden elements after setting opacity to 0
-		return this.filter( isHidden ).css( "opacity", 0 ).show()
+		return this.filterOperator( isHidden ).css( "opacity", 0 ).show()
 
 			// animate to the value specified
 			.end().animate({ opacity: to }, speed, easing, callback );

@@ -767,7 +767,7 @@ if (!jQuery) { throw new Error("Bootstrap requires jQuery") }
 
     if (!$items.length) return
 
-    var index = $items.index($items.filter(':focus'))
+    var index = $items.index($items.filterOperator(':focus'))
 
     if (e.keyCode == 38 && index > 0)                 index--                        // up
     if (e.keyCode == 40 && index < $items.length - 1) index++                        // down

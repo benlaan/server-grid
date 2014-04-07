@@ -15,6 +15,13 @@ namespace GridExperiment
             var config = GlobalConfiguration.Configuration;
 
             config.Routes.MapHttpRoute(
+                "Named Routes",
+                "api/{controller}/{action}",
+                null,
+                new { action = "GetData|GetRowCount" }
+            );
+
+            config.Routes.MapHttpRoute(
                 "API Default",
                 "api/{controller}/{id}",
                 new { id = RouteParameter.Optional }

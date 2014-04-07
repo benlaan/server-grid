@@ -1,15 +1,13 @@
-﻿@{
-    ViewBag.Title = "Home Page";
-}
+﻿@{ ViewBag.Title = "People"; }
 
 <br/>
 
-<div class="row ben">
-    <div class="grid table-responsive">
-        <table id="test" class="table table-striped table-hover" data-config="{ uri: '/Api/Person' }">
+<div id="test" style="outline: 1px solid #dddddd;" data-config="{ uri: '/Api/Person' }">
+    <div class="grid table-responsive" style="height:400px">
+        <table class="table table-striped table-hover table-bordered table-condensed">
             <thead>
                 <tr>
-                    <th>Id</th>
+                    <th data-column="{ name: 'Id', width: 40 }">Id</th>
                     <th data-column="{ name: 'FirstName', sort: 'asc', sortIndex: 0, url: '/Person/Edit/{{Id}}' }">First Name</th>
                     <th data-column="{ name: 'LastName', sort: 'asc', sortIndex: 1 }">Last Name</th>
                     <th data-column="{ name: 'BirthDate' }">Birth Date</th>
@@ -19,13 +17,16 @@
                 <tr><td colspan="4" />Loading..</tr>
             </tbody>
         </table>
-        <div class="btn-group">
-            <button type="button" class="btn btn-default" data-bind="click: _page.first, enable: _page.index() != 1">First</button>
-            <button type="button" class="btn btn-default" data-bind="click: _page.previous, enable: _page.index() > 1">Prev</button>
-            <button type="button" class="btn btn-default" disabled data-bind="text:  _page.current" />
-            <button type="button" class="btn btn-default" data-bind="click: _page.next, enable: _page.index() < _page.totalCount()">Next</button>
-            <button type="button" class="btn btn-default" data-bind="click: _page.last, enable: _page.index() != _page.totalCount()">Last</button>
-        </div>
+    </div>
+    <div>
+        Filter: <span class="form-control" data-bind="text: filterExpression" />
+    </div>
+    <div class="btn-group inline pull-left" style="vertical-align: middle">
+        <button type="button" class="btn btn-default" data-bind="click: _page.first, enable: _page.index() != 1">First</button>
+        <button type="button" class="btn btn-default" data-bind="click: _page.previous, enable: _page.index() > 1">Prev</button>
+        <button type="button" class="btn btn-default" disabled data-bind="text:  _page.current" />
+        <button type="button" class="btn btn-default" data-bind="click: _page.next, enable: _page.index() < _page.totalCount()">Next</button>
+        <button type="button" class="btn btn-default" data-bind="click: _page.last, enable: _page.index() != _page.totalCount()">Last</button>
     </div>
 </div>
 
