@@ -3,6 +3,7 @@
 
 class Page
 {
+    private totalRows: KnockoutObservable<number>;
     private totalCount: KnockoutObservable<number>;
     private current: KnockoutComputed<string>;
 
@@ -18,8 +19,11 @@ class Page
 
         this.size = ko.observable(size);
         this.totalCount = ko.observable(0);
+        this.totalRows = ko.observable(0);
 
-        this.current = ko.computed(() => "{0} of {1}".format([self.index(), self.totalCount()]), this);
+        this.current = ko.computed(() =>
+            "{0} of {1} (Total: {2})"
+                .format([self.index(), self.totalCount(), self.totalRows()]));
     }
 
     first = (sender: any, event: Event) =>
@@ -48,6 +52,7 @@ class Page
 
     setDataCount(count: number) 
     {
+        this.totalRows(count);
         this.totalCount(Math.ceil(count / this.size()));
     }
 }

@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Dynamic;
-using System.Net;
-using System.Net.Http;
 using System.Web.Http;
 
 namespace GridExperiment.Controllers
@@ -12,7 +10,10 @@ namespace GridExperiment.Controllers
     {
         public static string Join<T>(this IEnumerable<T> enumerable, string separator)
         {
-            return String.Join(separator, enumerable.Select(s => s == null ? String.Empty : s.ToString()).ToArray());
+            return String.Join(
+                separator, 
+                enumerable.Select(s => s == null ? String.Empty : s.ToString()).ToArray()
+            );
         }
     }
 
@@ -55,6 +56,15 @@ namespace GridExperiment.Controllers
         {
             Page = new GridPage();
             Columns = new List<Column>();
+        }
+
+        public string GetOrderClause()
+        {
+            return Columns
+                .Where(c => c.Sort != SortMode.None)
+                .OrderBy(c => c.SortIndex)
+                .Select(c => String.Format("{0} {1}", c.Name, c.Sort))
+                .Join(", ");
         }
 
         public GridPage Page { get; set; }
@@ -115,33 +125,35 @@ namespace GridExperiment.Controllers
             _data = data.ToDictionary(p => p.Id, p => p);
         }
 
-        [HttpGet]
-        public int GetRowCount([FromUri]GridState gridState)
+        private static IQueryable<Person> GetQuery(GridState grid)
         {
-            return _data.Values.Count();
+            var query = _data.Values.AsQueryable<Person>();
+
+            if (!String.IsNullOrEmpty(grid.FilterExpression))
+                query = query.Where(grid.FilterExpression);
+
+            return query;
+        }
+
+        [HttpGet]
+        public int GetRowCount([FromUri]GridState grid)
+        {
+            return GetQuery(grid).Count();
         }
 
         // GET api/<controller>
-        public IEnumerable<Person> GetData([FromUri] GridState gridState)
+        public IEnumerable<Person> GetData([FromUri]GridState grid)
         {
-            var sort = gridState.Columns
-                .Where(c => c.Sort != SortMode.None)
-                .OrderBy(c => c.SortIndex)
-                .Select(c => String.Format("{0} {1}", c.Name, c.Sort))
-                .Join(", ");
+            var query = GetQuery(grid);
 
-            var query = _data.Values
-                .AsQueryable<Person>()
-                .Skip((gridState.Page.Index - 1) * gridState.Page.Size)
-                .Take(gridState.Page.Size);
-
-            if (!String.IsNullOrEmpty(gridState.FilterExpression))
-                query = query.Where(gridState.FilterExpression);
-
+            var sort = grid.GetOrderClause();
             if (sort != "")
                 query = query.OrderBy(sort);
 
-            return query;
+            return query
+                .Skip((grid.Page.Index - 1) * grid.Page.Size)
+                .Take(grid.Page.Size)
+                .ToList();
         }
 
         // GET api/<controller>/5

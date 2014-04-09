@@ -1,6 +1,6 @@
 ﻿@{ ViewBag.Title = "People"; }
 
-<br/>
+<br />
 
 <div id="test" style="outline: 1px solid #dddddd;" data-config="{ uri: '/Api/Person' }">
     <div class="grid table-responsive" style="height:400px">
@@ -21,11 +21,10 @@
     <div class="btn-group inline pull-left" style="vertical-align: middle">
         <button type="button" class="btn btn-default" data-bind="click: _page.first, enable: _page.index() != 1">First</button>
         <button type="button" class="btn btn-default" data-bind="click: _page.previous, enable: _page.index() > 1">Prev</button>
-        <button type="button" class="btn btn-default" disabled value="Filter: "/>
         <button type="button" class="btn btn-default" disabled data-bind="text:  _page.current" />
         <button type="button" class="btn btn-default" data-bind="click: _page.next, enable: _page.index() < _page.totalCount()">Next</button>
         <button type="button" class="btn btn-default" data-bind="click: _page.last, enable: _page.index() != _page.totalCount()">Last</button>
-        <button type="button" class="btn btn-default" disabled data-bind="text: filterExpression" />
+        <button type="button" class="btn btn-default" style="width: 600px; text-align: left" disabled data-bind="text: 'Filter: ' + (filterExpression() || 'None') "> </button>
     </div>
 </div>
 

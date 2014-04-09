@@ -56,3 +56,8 @@ th.Desc {
     background-origin: content-box;
     background-size: 10px;
 }
+
+div.grid tr:first-child th {
+
+    cursor: pointer;
+}
