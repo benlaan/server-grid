@@ -13,8 +13,10 @@ interface Operation {
 class Grid {
 
     _name;
-    _selector: JQuery;
-    _config;
+    private _rowCount: number;
+    private _lastFilter: string;
+    private _selector: JQuery;
+    private _config;
     _columns: Column[];
     _rows: KnockoutObservableArray<any>;
     filterExpression: KnockoutObservable<string>;
@@ -23,21 +25,24 @@ class Grid {
 
     constructor(name: string) {
 
+        this._lastFilter = "";
+        this._rowCount = -1;
         this._name = name.replace("#", "");
-        this._selector = null;
+        this._selector = $(name);
         this._config = null;
         this._columns = [];
         this._rows = ko.observableArray();
 
-        this.filterExpression = ko.observable(" Filter: none");
+        this.filterExpression = ko.observable("");
+        this.filterExpression.subscribe(v => this.render());
 
         this._operations = [
 
-            { name: 'equal', title: 'Equals', expression: '{0} = "{1}"' },
-            { name: 'notEqual', title: 'Not Equals', expression: '{0} != "{1}"' },
-            { name: 'contains', title: 'Contains', expression: 'contains({0}, "{1}")' },
-            { name: 'startsWith', title: 'Starts With', expression: 'startsWith({0}, "{1}")' },
-            { name: 'endsWith', title: 'Ends With', expression: 'endsWith({0}, "{1}")' }
+            { name: 'equal',      title: 'Equals',      expression: '{0} = "{1}"' },
+            { name: 'notEqual',   title: 'Not Equals',  expression: '{0} != "{1}"' },
+            { name: 'contains', title: 'Contains', expression: '{0}.Contains("{1}")' },
+            { name: 'startsWith', title: 'Starts With', expression: '{0}.StartsWith("{1}")' },
+            { name: 'endsWith', title: 'Ends With', expression: '{0}.EndsWith("{1}")' }
         ];
 
         this._page = new Page(10, 0, this);
@@ -56,7 +61,7 @@ class Grid {
                 parts.push(filter);
         });
 
-        this.filterExpression(" Filter: " + parts.join(" AND "));
+        this.filterExpression(parts.join(" AND "));
     }
 
     getGridState() {
@@ -66,8 +71,9 @@ class Grid {
             return {
 
                 name: column.name,
-                sort: column.sort(),
+                sort: column.sort().toString(),
                 sortIndex: column.sortIndex(),
+                filter: column.filter(),
                 filterOperator: column.filterOperator(),
                 width: column.width()
             }
@@ -76,7 +82,8 @@ class Grid {
         return {
 
             page: { index: this._page.index(), size: this._page.size() },
-            columns: columns
+            columns: columns,
+            filterExpression: this.filterExpression()
         };
     }
 
@@ -94,7 +101,7 @@ class Grid {
         };
     }
 
-    buildGridColumnDefinitions() {
+    buildTableColumnGroups() {
 
         var html = "<colgroup>";
 
@@ -116,7 +123,6 @@ class Grid {
 
         $.each(this._columns, function (index, column) {
 
-            var indexedColumn = "_columns[" + index + "]";
             var width = column.width() || 100;
 
             var editor = [
@@ -125,7 +131,7 @@ class Grid {
                 '   <div class="input-group" style="width:100%">',
                 '     <input type="text" class="form-control" data-bind="value: {0}.filter, valueUpdate: \'afterkeydown\'" />',
                 '     <div class="input-group-btn input-small">',
-                '       <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" data-bind="attr: { title: filterExpression }">',
+                '       <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" data-bind="attr: { title: {0}.filterExpression }">',
                 '           <span class="glyphicon glyphicon-search" /><span class="caret" />',
                 '       </button>',
                 '       <ul class="dropdown-menu" role="menu">{1}</ul>',
@@ -135,6 +141,7 @@ class Grid {
                 '</td>'
             ];
 
+            var indexedColumn = "_columns[{0}]".format([index]);
             var actions = [];
             $.each(self._operations, function (index, operation) {
 
@@ -160,6 +167,7 @@ class Grid {
         var templateHtml = "<script type='text/template' id='{0}'><tbody data-bind='foreach: $data'><tr>".format([templateName]);
 
         $.each(this._columns, function (index, column) {
+
             if (column.url)
                 templateHtml += "<td data-bind='html: $root._columns[{0}].formatUrl($data, {1})'/>".format([index, column.name]);
             else
@@ -174,13 +182,11 @@ class Grid {
         this._selector.find("table").append($(koTemplate));
     }
 
-    init(name) {
+    defineColumns() {
 
         var self = this;
-        this._selector = $(name);
-        this._config = this.evaluate(this._selector.attr("data-config"));
 
-        this._selector.find("thead th").each(function (index, headerCell) {
+        this._selector.find("thead th").each((index, headerCell) => {
 
             var columnData = $(headerCell).attr("data-column");
 
@@ -190,13 +196,48 @@ class Grid {
 
             self._columns.push(column);
         });
+    }
 
-        this.buildGridColumnDefinitions();
+    applyColumnClick(column : Column) {
+
+        _(this._columns)
+            .without(column)
+            .forEach(c => c.sort(SortMode.None));
+
+        column.click();
+    }
+
+    init(name) {
+
+        var self = this;
+        this._config = this.evaluate(this._selector.attr("data-config"));
+
+        this.defineColumns();
+        this.buildTableColumnGroups();
         this.buildGridFilterEditors();
+
+        this._selector.find("thead tr:first() th").each((index, element) => {
+
+            $(element).attr("data-bind", "attr { class: _columns[{0}].sortClass }".format([index]));
+            $(element).click(() => self.applyColumnClick(self._columns[index]));
+        });
 
         this.buildGridTemplate(name);
         ko.applyBindings(this, this._selector.parent()[0]);
         this.render();
+    }
+
+    bindData(gridState: any) {
+
+        var self = this;
+
+        $.getJSON(this._config.uri + "/GetData", gridState, function (response) {
+
+            self._selector.find("tbody.loading").remove();
+            self._rows(response);
+
+            self._lastFilter = self.filterExpression();
+        });
     }
 
     render() {
@@ -204,15 +245,17 @@ class Grid {
         var self = this;
         var gridState = this.getGridState();
 
-        $.get(this._config.uri + "/GetRowCount", gridState, function (response) {
+        // only need to update the row count on change of filter or on first read
+        if (this._rowCount == -1 || this._lastFilter != this.filterExpression()) {
 
-            self._page.setDataCount(response);
+            $.get(this._config.uri + "/GetRowCount", gridState, function (response: number) {
 
-            $.getJSON(self._config.uri + "/GetData", gridState, function (response) {
-
-                self._selector.find("tbody.loading").remove();
-                self._rows(response);
+                self._page.setDataCount(response);
+                self._rowCount = response;
+                self.bindData(gridState);
             });
-        });
+        }
+        else
+            this.bindData(gridState);
     }
 };

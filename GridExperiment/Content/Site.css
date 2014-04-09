@@ -40,3 +40,19 @@ input[type="checkbox"].input-validation-error {
 .validation-summary-valid {
     display: none;
 }
+
+th.Asc {
+    background-image: url('/Content/up.png');
+    background-repeat: no-repeat;
+    background-position: right;
+    background-origin: content-box;
+    background-size: 10px;
+}
+
+th.Desc {
+    background-image: url('/Content/down.png');
+    background-repeat: no-repeat;
+    background-position: right;
+    background-origin: content-box;
+    background-size: 10px;
+}

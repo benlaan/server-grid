@@ -14,21 +14,15 @@ class Page
         var self = this;
 
         this.index = ko.observable(1);
-        this.index.subscribe(function (newValue) {
-
-            grid.render();
-        });
+        this.index.subscribe(v => grid.render());
 
         this.size = ko.observable(size);
         this.totalCount = ko.observable(0);
 
-        this.current = ko.computed(
-            function () { return "{0} of {1}".format([self.index(), self.totalCount()]); },
-            this
-        );
+        this.current = ko.computed(() => "{0} of {1}".format([self.index(), self.totalCount()]), this);
     }
 
-    first = (sender: any, event: Event) => 
+    first = (sender: any, event: Event) =>
     {
         this.index(1);
     }
@@ -52,7 +46,7 @@ class Page
         this.index(this.totalCount());
     }
 
-    setDataCount(count) 
+    setDataCount(count: number) 
     {
         this.totalCount(Math.ceil(count / this.size()));
     }

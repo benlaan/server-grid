@@ -1,12 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Dynamic;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 
 namespace GridExperiment.Controllers
 {
+    public static class EnumerableExtensions
+    {
+        public static string Join<T>(this IEnumerable<T> enumerable, string separator)
+        {
+            return String.Join(separator, enumerable.Select(s => s == null ? String.Empty : s.ToString()).ToArray());
+        }
+    }
+
     public class Person
     {
         public int Id { get; set; }
@@ -33,6 +42,8 @@ namespace GridExperiment.Controllers
         public int SortIndex { get; set; }
         public SortMode Sort { get; set; }
         public string Name { get; set; }
+        public string Filter { get; set; }
+        public string FilterOperator { get; set; }
     }
 
     public class GridState
@@ -48,6 +59,7 @@ namespace GridExperiment.Controllers
 
         public GridPage Page { get; set; }
         public List<Column> Columns { get; set; }
+        public string FilterExpression { get; set; }
     }
 
     public class PersonController : ApiController
@@ -110,12 +122,26 @@ namespace GridExperiment.Controllers
         }
 
         // GET api/<controller>
-        public IEnumerable<Person> GetData([FromUri]GridState gridState)
+        public IEnumerable<Person> GetData([FromUri] GridState gridState)
         {
-            return _data.Values
+            var sort = gridState.Columns
+                .Where(c => c.Sort != SortMode.None)
+                .OrderBy(c => c.SortIndex)
+                .Select(c => String.Format("{0} {1}", c.Name, c.Sort))
+                .Join(", ");
+
+            var query = _data.Values
+                .AsQueryable<Person>()
                 .Skip((gridState.Page.Index - 1) * gridState.Page.Size)
-                .Take(gridState.Page.Size)
-                .ToList();
+                .Take(gridState.Page.Size);
+
+            if (!String.IsNullOrEmpty(gridState.FilterExpression))
+                query = query.Where(gridState.FilterExpression);
+
+            if (sort != "")
+                query = query.OrderBy(sort);
+
+            return query;
         }
 
         // GET api/<controller>/5
