@@ -1,5 +1,5 @@
-﻿class StringExt
-{
+﻿class StringExt {
+
     // Return all pattern matches with captured groups
     static execAll(regex: RegExp, value: string): string[]
     {
@@ -21,8 +21,8 @@
     }
 }
 
-interface String
-{
+interface String {
+
     toCamelCase(): string;
     toJavaCase(): string;
     template(replacements: any): string;
@@ -30,17 +30,19 @@ interface String
 }
 
 String.prototype.toCamelCase = function () {
+
     return this.charAt(0).toUpperCase() + this.slice(1);
 };
 
 String.prototype.toJavaCase = function () {
+
     return this.charAt(0).toLowerCase() + this.slice(1);
 };
 
 String.prototype.template = function (replacements) {
 
     var result: string = this;
-    var matches = StringExt.execAll(new RegExp("/\{\{(.*?)\}\}/g", undefined), result);
+    var matches = StringExt.execAll(/\{\{(.*?)\}\}/g, result);
     if (matches) {
 
         matches.forEach(function (token) {
@@ -50,6 +52,7 @@ String.prototype.template = function (replacements) {
             result = result.replace(token[0], value);
         });
     }
+
     return result;
 }
 
@@ -59,7 +62,8 @@ String.prototype.format = function (replacements) {
         throw "replacements must be an array";
 
     var result: string = this;
-    var matches = StringExt.execAll(new RegExp("/\{(\d)\}/g", undefined), result);
+    var matches = StringExt.execAll(/\{(\d+)\}/g, result);
+
     if (matches) {
 
         matches.forEach(function (token) {

@@ -3,21 +3,21 @@
 /// <reference path="../typings/jquery/jquery.d.ts" />
 /// <reference path="../typings/knockout/knockout.d.ts" />
 
-interface Operation
-{
+interface Operation {
+
     name: string;
     title: string;
     expression: string;
 }
 
-class Grid
-{
+class Grid {
+
     _name;
     _selector: JQuery;
     _config;
     _columns: Column[];
     _rows: KnockoutObservableArray<any>;
-    filterExpression;
+    filterExpression: KnockoutObservable<string>;
     _operations: Operation[];
     _page: Page;
 
@@ -29,10 +29,10 @@ class Grid
         this._columns = [];
         this._rows = ko.observableArray();
 
-        this.filterExpression = ko.observable("");
+        this.filterExpression = ko.observable(" Filter: none");
 
-        this._operations =
-        [
+        this._operations = [
+
             { name: 'equal', title: 'Equals', expression: '{0} = "{1}"' },
             { name: 'notEqual', title: 'Not Equals', expression: '{0} != "{1}"' },
             { name: 'contains', title: 'Contains', expression: 'contains({0}, "{1}")' },
@@ -45,8 +45,8 @@ class Grid
         this.init(name);
     }
 
-    columnFilterChanged = (value: string) =>
-    {
+    columnFilterChanged = (value: string) => {
+
         var parts = [];
 
         $.each(this._columns, function (index, column) {
@@ -56,14 +56,15 @@ class Grid
                 parts.push(filter);
         });
 
-        this.filterExpression(parts.join(" AND "));
+        this.filterExpression(" Filter: " + parts.join(" AND "));
     }
 
-    getGridState()
-    {
+    getGridState() {
+
         var columns = $.map(this._columns, function (column) {
 
             return {
+
                 name: column.name,
                 sort: column.sort(),
                 sortIndex: column.sortIndex(),
@@ -79,13 +80,13 @@ class Grid
         };
     }
 
-    evaluate(attribute)
-    {
+    evaluate(attribute) {
+        
         return eval("(" + attribute + ")")
     }
 
-    getDefaultColumn($td)
-    {
+    getDefaultColumn($td) {
+
         return {
             sort: '',
             sortIndex: -1,
@@ -93,22 +94,23 @@ class Grid
         };
     }
 
-    buildGridFilterEditors() 
-    {
+    buildGridFilterEditors() {
+
         var filterHtml = "<tr>";
         var self: Grid = this;
 
         $.each(this._columns, function (index, column) {
 
             var indexedColumn = "_columns[" + index + "]";
-            var width = column.width() | 100;
+            var width = column.width() || 100;
 
             var $dropdownEditor = $("<select multiple='multiple' style='position: absolute; top: inherit; width: 100%;display: none' />");
-            
+            var html = $dropdownEditor[0].outerHTML;
+
             var editor = [
 
-                '<div class="input-group">',
-                '  <input type="text" class="form-control" style="min-width:' + width + 'px" data-bind="value: ' + indexedColumn + '.filter, valueUpdate: \'afterkeydown\'" />',
+                '<div class="input-group" style="width:100%">',
+                '  <input type="text" class="form-control" data-bind="value: ' + indexedColumn + '.filter, valueUpdate: \'afterkeydown\'" />',
                 '  <div class="input-group-btn input-small">',
                 '    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" data-bind="attr: { title: filterExpression }">',
                 '        <span class="glyphicon glyphicon-search" /><span class="caret" />',
@@ -121,7 +123,7 @@ class Grid
                 editor.push('<li><a data-bind="click: ' + indexedColumn + '.' + operation.name + '">' + operation.title + '</a></li>');
             });
 
-            filterHtml += "<th>" + editor.join("\n") + "</ul></div></div><div>" + $dropdownEditor[0].outerHTML + "</div></th>";
+            filterHtml += "<th style='width:" + width + "px'>" + editor.join("\n") + "</ul></div></div><div>" + html + "</div></th>";
         });
 
         filterHtml += "</tr>";
@@ -129,14 +131,13 @@ class Grid
         $(filterHtml).insertAfter(this._selector.find("thead tr"));
     }
 
-    buildGridTemplate(name)
-    {
+    buildGridTemplate(name) {
+
         var templateName = this._name + "-columns";
 
-        var templateHtml = "<script type='text/template' id='" + templateName + "'><tbody style='min-height: 200px' data-bind='foreach: $data'><tr>";
+        var templateHtml = "<script type='text/template' id='" + templateName + "'><tbody data-bind='foreach: $data'><tr>";
 
-        $.each(this._columns, function (index, column)
-        {
+        $.each(this._columns, function (index, column) {
             if (column.url)
                 templateHtml += "<td data-bind='html: $root._columns[" + index + "].formatUrl($data, " + column.name + ")'/>";
             else
@@ -151,8 +152,8 @@ class Grid
         this._selector.find("table").append(koTemplate);
     }
 
-    init(name)
-    {
+    init(name) {
+
         var self = this;
         this._selector = $(name);
         this._config = this.evaluate(this._selector.attr("data-config"));
@@ -165,6 +166,8 @@ class Grid
             column.index = self._columns.length;
             column.filterExpression.subscribe(self.columnFilterChanged);
 
+            $(headerCell).attr("style", "width: " + (column.width() || 100) + "px");
+
             self._columns.push(column);
         });
 
@@ -174,8 +177,8 @@ class Grid
         this.render();
     }
 
-    render() 
-    {
+    render() {
+
         var self = this;
         var gridState = this.getGridState();
 
@@ -186,12 +189,7 @@ class Grid
             $.getJSON(self._config.uri + "/GetData", gridState, function (response) {
 
                 self._selector.find("tbody.loading").remove();
-                self._rows.removeAll();
-
-                $.each(response, function (index, row) {
-
-                    self._rows.push(row);
-                });
+                self._rows(response);
             });
         });
     }

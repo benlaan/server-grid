@@ -39,17 +39,21 @@ class Column {
             };
         });
 
-        this.filterExpression = ko.computed(function () {
+        this.filterExpression = ko.computed(
+            function () { return self.calculateFilter(); },
+            this
+        );
+    }
 
-            if (!self.filter())
-                return "";
+    calculateFilter() {
 
-            var result = self.filterOperator().format([self.name, self.filter()]);
-            grid.filterExpression.notifySubscribers();
+        if (!this.filter())
+            return "";
 
-            return result;
-        },
-        this);
+        var result = this.filterOperator().format([this.name, this.filter()]);
+        this.grid.filterExpression.notifySubscribers();
+
+        return result;
     }
 
     formatUrl(data, value) {

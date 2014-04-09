@@ -163,9 +163,12 @@ pip-log.txt
 
 # Mac crap
 .DS_Store
+
 _backup
-/Laan.CookNg/Analyzers
-/Laan.CookNg/dump.raven
-/Laan.CookNg/App_Data
-/Laan.CookNg/Content/Images/Recipes
-/Laan.CookNg/Raven/CompiledIndexCache
+GridExperiment/Scripts/Components/*.js
+GridExperiment/Scripts/Components/*.js.map
+
+GridExperiment/Scripts/string.js
+GridExperiment/Scripts/string.js.map
+
+

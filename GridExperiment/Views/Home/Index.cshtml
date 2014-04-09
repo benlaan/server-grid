@@ -8,7 +8,7 @@
             <thead>
                 <tr>
                     <th data-column="{ name: 'Id', width: 40 }">Id</th>
-                    <th data-column="{ name: 'FirstName', sort: 'asc', sortIndex: 0, url: '/Person/Edit/{{Id}}' }">First Name</th>
+                    <th data-column="{ name: 'FirstName', sort: 'asc', sortIndex: 0, url: '/Person/Edit/{{Id}}/{{FirstName}}-{{LastName}}' }">First Name</th>
                     <th data-column="{ name: 'LastName', sort: 'asc', sortIndex: 1 }">Last Name</th>
                     <th data-column="{ name: 'BirthDate' }">Birth Date</th>
                 </tr>
@@ -18,15 +18,13 @@
             </tbody>
         </table>
     </div>
-    <div>
-        Filter: <span class="form-control" data-bind="text: filterExpression" />
-    </div>
     <div class="btn-group inline pull-left" style="vertical-align: middle">
         <button type="button" class="btn btn-default" data-bind="click: _page.first, enable: _page.index() != 1">First</button>
         <button type="button" class="btn btn-default" data-bind="click: _page.previous, enable: _page.index() > 1">Prev</button>
         <button type="button" class="btn btn-default" disabled data-bind="text:  _page.current" />
         <button type="button" class="btn btn-default" data-bind="click: _page.next, enable: _page.index() < _page.totalCount()">Next</button>
         <button type="button" class="btn btn-default" data-bind="click: _page.last, enable: _page.index() != _page.totalCount()">Last</button>
+        <button type="button" class="btn btn-default" disabled data-bind="text: filterExpression" />
     </div>
 </div>
 
