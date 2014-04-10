@@ -21,9 +21,7 @@ class Page
         this.totalCount = ko.observable(0);
         this.totalRows = ko.observable(0);
 
-        this.current = ko.computed(() =>
-            "{0} of {1} (Total: {2})"
-                .format([self.index(), self.totalCount(), self.totalRows()]));
+        this.current = ko.computed(() => "{0} of {1} (Total: {2})".format([self.index(), self.totalCount(), self.totalRows()]));
     }
 
     first = (sender: any, event: Event) =>
@@ -50,9 +48,12 @@ class Page
         this.index(this.totalCount());
     }
 
-    setDataCount(count: number) 
+    setRowCount(count: number) 
     {
         this.totalRows(count);
         this.totalCount(Math.ceil(count / this.size()));
+
+        if (this.totalCount() < this.index())
+            this.index(this.totalCount());
     }
 }

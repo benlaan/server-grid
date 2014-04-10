@@ -81,10 +81,6 @@ class Column {
 
     formatUrl(data, value) {
 
-        var $url = $("<a/>")
-            .attr("href", this.url.template(data))
-            .text(value);
-
-        return $url[0].outerHTML;
+        return "<a href='{0}>{1}</a>".format([this.url.template(data), value]);
     }
 }

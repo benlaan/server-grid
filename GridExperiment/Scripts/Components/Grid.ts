@@ -227,6 +227,7 @@ class Grid {
 
             column.sortIndex(nextSortIndex + 1);
         }
+
         column.click();
     }
 
@@ -237,7 +238,7 @@ class Grid {
 
             $(element)
                 .attr("data-bind", "attr { class: _columns[{0}].sortClass, title: _columns[{0}].sortClass }".format([index]))
-                .mousedown((e) => self.applyColumnClick(e, self._columns[index]));
+                .mousedown(e => self.applyColumnClick(e, self._columns[index]));
         });
     }
 
@@ -245,7 +246,7 @@ class Grid {
 
         var self = this;
 
-        $.getJSON(this._config.uri + "/GetData", gridState, function (response) {
+        $.getJSON(this._config.uri + "/GetData", gridState, response => {
 
             self._selector.find("tbody.loading").remove();
             self._rows(response);
@@ -258,9 +259,9 @@ class Grid {
 
         var self = this;
 
-        $.get(this._config.uri + "/GetRowCount", gridState, function (response: number) {
+        $.get(this._config.uri + "/GetRowCount", gridState, (response: number) => {
 
-            self._page.setDataCount(response);
+            self._page.setRowCount(response);
             self._rowCount = response;
             self.bindData(gridState);
         });
