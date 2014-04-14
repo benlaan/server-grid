@@ -3,31 +3,22 @@
 <br />
 
 <div id="test" style="outline: 1px solid #dddddd;" data-config="{ uri: '/Api/Person' }">
-    <div class="grid table-responsive" style="height:400px">
-        <table class="table table-striped table-hover table-bordered table-condensed">
+    <div class="grid" style="height:400px">
+        <table>
             <thead>
                 <tr>
-                    <th data-column="{ name: 'Id', width: 60 }">Id</th>
-                    <th data-column="{ name: 'FirstName', sort: 'Asc', sortIndex: 0, url: '/Person/Edit/{{Id}}/{{FirstName}}-{{LastName}}' }">First Name</th>
-                    <th data-column="{ name: 'LastName', sort: 'Asc', sortIndex: 1 }">Last Name</th>
-                    <th data-column="{ name: 'BirthDate' }">Birth Date</th>
+                    <th data-column="{ name: 'Id', width: 60, filterTemplate: 'numeric-filter' }">Id</th>
+                    <th data-column="{ name: 'FirstName', sort: 'Asc', sortIndex: 0, url: '/Person/Edit/{{Id}}/{{FirstName}}-{{LastName}}', filterTemplate: 'check-list' }">First Name</th>
+                    <th data-column="{ name: 'LastName', sort: 'Asc', sortIndex: 1, filterTemplate: 'string-operations' }">Last Name</th>
+                    <th data-column="{ name: 'BirthDate', filterTemplate: 'date-range-filter' }">Birth Date</th>
                 </tr>
             </thead>
-            <tbody class="loading">
-                <tr><td colspan="4" />Loading..</tr>
-            </tbody>
         </table>
-    </div>
-    <div class="btn-group inline pull-left" style="vertical-align: middle">
-        <button type="button" class="btn btn-default" data-bind="click: _page.first, enable: _page.index() != 1">First</button>
-        <button type="button" class="btn btn-default" data-bind="click: _page.previous, enable: _page.index() > 1">Prev</button>
-        <button type="button" class="btn btn-default" disabled data-bind="text: _page.current" />
-        <button type="button" class="btn btn-default" data-bind="click: _page.next, enable: _page.index() < _page.totalCount()">Next</button>
-        <button type="button" class="btn btn-default" data-bind="click: _page.last, enable: _page.index() != _page.totalCount()">Last</button>
-        <button type="button" class="btn btn-default" style="width: 600px; text-align: left" disabled data-bind="text: 'Filter: ' + (filterExpression() || 'None') "> </button>
     </div>
 </div>
 
 <script>
-    var grid = new Grid("#test");
+    $().ready(function () {
+        var grid = new Grid("#test");
+    });
 </script>

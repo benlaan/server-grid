@@ -10,9 +10,15 @@ interface Operation {
     expression: string;
 }
 
+interface TemplateInfo {
+    element:  string;
+    selector: (JQuery) => JQuery;
+    templateName: string;
+}
+
 class Grid {
 
-    private _name;
+    private _name: string;
     private _refreshTimer;
     private _rowCount: number;
     private _lastFilter: string;
@@ -21,9 +27,16 @@ class Grid {
     private _rows: KnockoutObservableArray<any>;
     private _page: Page;
 
-    public _columns: Column[];
+    public columns: Column[];
     public filterExpression: KnockoutObservable<string>;
-    public _operations: Operation[];
+
+    // fake static constructor
+    static init() {
+
+        Grid.attachHtmlTemplate("Grid");
+    }
+
+    static ctor = Grid.init();
 
     constructor(name: string) {
 
@@ -37,31 +50,52 @@ class Grid {
         this.filterExpression = ko.observable("");
         this.filterExpression.subscribe(v => this.delayRefresh());
 
-        this._operations = [
-            { name: 'equal', title: 'Equals', expression: '{0} = "{1}"' },
-            { name: 'notEqual', title: 'Not Equals', expression: '{0} != "{1}"' },
-            { name: 'contains', title: 'Contains', expression: '{0}.Contains("{1}")' },
-            { name: 'startsWith', title: 'Starts With', expression: '{0}.StartsWith("{1}")' },
-            { name: 'endsWith', title: 'Ends With', expression: '{0}.EndsWith("{1}")' }
-        ];
-
         this._page = new Page(10, 0, this);
 
+        this.applyGridClasses();
         this.defineColumns();
-        this.buildTableColumnGroups();
-        this.buildGridFilterEditors();
         this.buildColumnHeaderBindings();
-        this.buildGridTemplate(name);
+        this.attachKnockoutBindings();
 
         ko.applyBindings(this, this._selector.parent()[0]);
         this.render();
+    }
+
+    private applyGridClasses() {
+
+        var id = "#{0} ".format([this._name]);
+
+        $(id).addClass("grid-wrapper");
+        $(id + ".grid").addClass("table-responsive");
+        $(id + ".grid table").addClass("table table-striped table-hover table-bordered table-condensed");
+    }
+
+    private attachKnockoutBindings() {
+
+        var id = "#{0} ".format([this._name]);
+
+        var templates: TemplateInfo[] = [
+
+            { element: "colgroup", templateName: "grid-column-group",  selector: (s: JQuery) => s.prependTo(id + "table") },
+            { element: "tr",       templateName: "grid-column-editor", selector: (s: JQuery) => s.appendTo(id + "thead") },
+            { element: "tbody",    templateName: "grid-rows",          selector: (s: JQuery) => s.appendTo(id + "table") },
+            { element: "div",      templateName: "grid-pager",         selector: (s: JQuery) => s.appendTo(id + "div.grid") }
+        ];
+
+        $.each(templates, (i, t) => this.attachKnockoutBinding(t.element, t.selector, t.templateName));
+    }
+
+    private attachKnockoutBinding(elementName: string, selector: (s: JQuery) => JQuery, templateName: string) {
+
+        var $element = $("<{0}/>".format([elementName])).attr('data-bind', 'template: { name: "' + templateName + '", data: $data }');
+        selector($element);
     }
 
     private columnFilterChanged = (value: string) => {
 
         var parts = [];
 
-        $.each(this._columns, function (index, column) {
+        $.each(this.columns, function (index, column) {
 
             var filter = column.filterExpression();
             if (filter)
@@ -73,14 +107,14 @@ class Grid {
 
     private getGridState() {
 
-        var columns = $.map(this._columns, function (column) {
+        var columns = $.map(this.columns, function (column) {
 
             return {
 
                 name: column.name,
                 sort: column.sort().toString(),
                 sortIndex: column.sortIndex(),
-                filter: column.filter(),
+                filter: column.filteredValue(),
                 filterOperator: column.filterOperator(),
                 width: column.width()
             }
@@ -108,101 +142,35 @@ class Grid {
         };
     }
 
-    private buildTableColumnGroups() {
+    static attachHtmlTemplate(name: string) {
 
-        var html = "<colgroup>";
+        $.ajaxSetup({ async: false });
+        try {
 
-        $.each(this._columns, function (index, column) {
+            var temp = $("<div />");
+            temp.load("/Content/Templates/{0}.html".format([name]));
+            $("head").append($(temp.html()));
+        }
+        finally {
 
-            var width = column.width() || 120;
-            html += "<col span='1' style='width: {0}px' />\n".format([width]);
-        });
-
-        html += "</colgroup>";
-
-        $(html).prependTo(this._selector.find("table"));
-    }
-
-    private buildGridFilterEditors() {
-
-        var filterHtml = "<tr>";
-        var self: Grid = this;
-
-        $.each(this._columns, function (index, column) {
-
-            var width = column.width() || 100;
-
-            var editor = [
-
-                '<th>',
-                '   <div class="input-group" style="width:100%">',
-                '     <input type="text" class="form-control" data-bind="value: {0}.filter, valueUpdate: \'afterkeydown\'" />',
-                '     <div class="input-group-btn input-small">',
-                '       <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" data-bind="attr: { title: {0}.filterExpression }">',
-                '           <span class="glyphicon glyphicon-search" /><span class="caret" />',
-                '       </button>',
-                '       <ul class="dropdown-menu" role="menu">{1}</ul>',
-                '     </div>',
-                '   </div>',
-                '   <div>{2}</div>',
-                '</td>'
-            ];
-
-            var indexedColumn = "_columns[{0}]".format([index]);
-            var actions = [];
-            $.each(self._operations, function (index, operation) {
-
-                var operationAction = '<li><a data-bind="click: {0}.{1}">{2}</a></li>'.format([indexedColumn, operation.name, operation.title]);
-                actions.push(operationAction);
-            });
-
-            var $dropdownEditor = $("<select multiple='multiple' style='position: absolute; top: inherit; width: 100%;display: none' />");
-            var html = $dropdownEditor[0].outerHTML;
-
-            filterHtml += editor.join("\n").format([indexedColumn, actions.join("\n"), html]);
-        });
-
-        filterHtml += "</tr>";
-
-        $(filterHtml).insertAfter(this._selector.find("thead tr"));
-    }
-
-    private buildGridTemplate(name) {
-
-        var templateName = this._name + "-columns";
-
-        var templateHtml = "<script type='text/template' id='{0}'><tbody data-bind='foreach: $data'><tr>".format([templateName]);
-
-        $.each(this._columns, function (index, column) {
-
-            if (column.url)
-                templateHtml += "<td data-bind='html: $root._columns[{0}].formatUrl($data, {1})'/>".format([index, column.name]);
-            else
-                templateHtml += "<td data-bind='text: {0}'/>".format([column.name]);
-        });
-
-        templateHtml += "</tr></tbody></script>";
-
-        $(templateHtml).insertAfter(this._selector.find("thead"));
-
-        var koTemplate = "<!-- ko template: { name: '{0}', data: _rows }  --> <!-- /ko -->".format([templateName]);
-        this._selector.find("table").append($(koTemplate));
+            $.ajaxSetup({ async: true });
+        }
     }
 
     private defineColumns() {
 
         var self = this;
-        this._columns = [];
+        this.columns = [];
 
         this._selector.find("thead th").each((index, headerCell) => {
 
             var columnData = $(headerCell).attr("data-column");
 
             var column = new Column(self.evaluate(columnData) || self.getDefaultColumn($(headerCell)), self);
-            column.index = self._columns.length;
+            column.index = self.columns.length;
             column.filterExpression.subscribe(self.columnFilterChanged);
 
-            self._columns.push(column);
+            self.columns.push(column);
         });
     }
 
@@ -211,7 +179,7 @@ class Grid {
         if (!event.ctrlKey) {
 
             // reset all sort modes to none except the column selected
-            _(this._columns)
+            _(this.columns)
                 .without(column)
                 .forEach(c => c.sort(SortMode.None));
         }
@@ -219,7 +187,7 @@ class Grid {
 
             // instead of resetting, set the sort index of the selected column to the next index
             var nextSortIndex = _
-                .chain(this._columns)
+                .chain(this.columns)
                 .without(column)
                 .map(c => c.sortIndex())
                 .max()
@@ -238,7 +206,7 @@ class Grid {
 
             $(element)
                 .attr("data-bind", "attr { class: _columns[{0}].sortClass, title: _columns[{0}].sortClass }".format([index]))
-                .mousedown(e => self.applyColumnClick(e, self._columns[index]));
+                .mousedown(e => self.applyColumnClick(e, self.columns[index]));
         });
     }
 
@@ -248,9 +216,7 @@ class Grid {
 
         $.getJSON(this._config.uri + "/GetData", gridState, response => {
 
-            self._selector.find("tbody.loading").remove();
             self._rows(response);
-
             self._lastFilter = self.filterExpression();
         });
     }
