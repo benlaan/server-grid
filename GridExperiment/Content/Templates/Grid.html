@@ -60,14 +60,24 @@
 <!-- Default Filter -->
 <script type='text/template' id="grid-default-filter">
     <ul class="dropdown-menu" data-bind="foreach: $data.items">
-        <li role="presentation"><a role="menuitem" data-bind="text: $data.title, click: $parent.filter._selectedOperation" /></li>
+        <li role="presentation">
+            <a role="menuitem" data-bind="click: $parent.filter._selectedOperation" >
+                <i class="glyphicon glyphicon-ok" data-bind="visible: $parent.filter.getSelectedClass($data)" />
+                <label data-bind="text: $data.title" />
+            </a>
+        </li>
     </ul>
 </script>
 
 <!-- Numeric Filter -->
 <script type='text/template' id="grid-numeric-filter">
     <ul class="dropdown-menu" data-bind="foreach: $data.items">
-        <li role="presentation"><a role="menuitem" data-bind="text: $data.title, click: $parent.filter._selectedOperation" /></li>
+        <li role="presentation">
+            <a role="menuitem" data-bind="click: $parent.filter._selectedOperation">
+                <i class="glyphicon glyphicon-ok" data-bind="visible: $parent.filter.getSelectedClass($data)" />
+                <label data-bind="text: $data.title" />
+            </a>
+        </li>
     </ul>
 </script>
 

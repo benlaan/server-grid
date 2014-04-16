@@ -3,13 +3,6 @@
 /// <reference path="../typings/jquery/jquery.d.ts" />
 /// <reference path="../typings/knockout/knockout.d.ts" />
 
-interface Operation {
-
-    name: string;
-    title: string;
-    expression: string;
-}
-
 interface TemplateInfo {
     element: string;
     selector: (JQuery) => JQuery;
