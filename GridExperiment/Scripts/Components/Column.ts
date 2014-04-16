@@ -21,7 +21,7 @@ interface ColumnDefinition {
 
 class Column {
 
-    private grid: Grid;
+    private _grid: Grid;
     private _filter: Filter;
 
     public sort: KnockoutObservable<SortMode>;
@@ -30,7 +30,6 @@ class Column {
 
     public width: KnockoutObservable<number>;
 
-    public filterOperator: KnockoutObservable<string>;
     public filteredValue: KnockoutObservable<string>;
     public filterExpression: KnockoutObservable<string>;
 
@@ -41,7 +40,7 @@ class Column {
 
     constructor(column: ColumnDefinition, grid: Grid) {
 
-        this.grid = grid;
+        this._grid = grid;
         this.name = column.name;
         this.url = column.url;
         this.filterTemplate = column.filterTemplate;
@@ -59,13 +58,17 @@ class Column {
 
         this.sortClass = ko.computed(() => self.sort() != SortMode.None ? SortMode[self.sort()] : "");
 
-        //// map operations to a method on the column - this is ko'ed to the click event
-        //_.each(grid._operations, o => self[o.name] = () => self.filterOperator(o.expression));
-
         this.filterExpression = ko.observable<string>();
 
         this._filter = Filter.getByName(this.filterTemplate, this);
+
         this._filter.expression.subscribe(v => this.filterExpression(v));
+
+        this.filteredValue.subscribe(() => {
+
+            this._filter.recalculateFilter();
+            this.filterExpression(this._filter.expression());
+        });
     }
 
     click() {
@@ -101,5 +104,10 @@ class Column {
     public getData(): any {
 
         return this._filter.getData();
+    }
+
+    public getFilterState(): string {
+
+        return this._filter.getState();
     }
 }

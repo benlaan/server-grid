@@ -11,9 +11,9 @@ interface Operation {
 }
 
 interface TemplateInfo {
-    element:  string;
+    element: string;
     selector: (JQuery) => JQuery;
-    templateName: string;
+    name: string;
 }
 
 class Grid {
@@ -76,26 +76,28 @@ class Grid {
 
         var templates: TemplateInfo[] = [
 
-            { element: "colgroup", templateName: "grid-column-group",  selector: (s: JQuery) => s.prependTo(id + "table") },
-            { element: "tr",       templateName: "grid-column-editor", selector: (s: JQuery) => s.appendTo(id + "thead") },
-            { element: "tbody",    templateName: "grid-rows",          selector: (s: JQuery) => s.appendTo(id + "table") },
-            { element: "div",      templateName: "grid-pager",         selector: (s: JQuery) => s.appendTo(id + "div.grid") }
+            { element: "colgroup", name: "grid-column-group",  selector: (s: JQuery) => s.prependTo(id + "table")   },
+            { element: "tr",       name: "grid-column-editor", selector: (s: JQuery) => s.appendTo(id + "thead")    },
+            { element: "tbody",    name: "grid-rows",          selector: (s: JQuery) => s.appendTo(id + "table")    },
+            { element: "div",      name: "grid-pager",         selector: (s: JQuery) => s.appendTo(id + "div.grid") }
         ];
 
-        $.each(templates, (i, t) => this.attachKnockoutBinding(t.element, t.selector, t.templateName));
+        _.each(templates, t => this.attachKnockoutBinding(t));
     }
 
-    private attachKnockoutBinding(elementName: string, selector: (s: JQuery) => JQuery, templateName: string) {
+    private attachKnockoutBinding(template: TemplateInfo) {
 
-        var $element = $("<{0}/>".format([elementName])).attr('data-bind', 'template: { name: "' + templateName + '", data: $data }');
-        selector($element);
+        var templateBinding = 'template: { name: "{0}", data: $data }'.format([template.name]);
+        var $element = $("<{0}/>".format([template.element])).attr('data-bind', templateBinding);
+
+        template.selector($element);
     }
 
     private columnFilterChanged = (value: string) => {
 
         var parts = [];
 
-        $.each(this.columns, function (index, column) {
+        _.each(this.columns, column => {
 
             var filter = column.filterExpression();
             if (filter)
@@ -107,7 +109,7 @@ class Grid {
 
     private getGridState() {
 
-        var columns = $.map(this.columns, function (column) {
+        var columns = _.map(this.columns, column => {
 
             return {
 
@@ -115,7 +117,7 @@ class Grid {
                 sort: column.sort().toString(),
                 sortIndex: column.sortIndex(),
                 filter: column.filteredValue(),
-                filterOperator: column.filterOperator(),
+                filterState: column.getFilterState(),
                 width: column.width()
             }
         });
@@ -168,7 +170,7 @@ class Grid {
 
             var column = new Column(self.evaluate(columnData) || self.getDefaultColumn($(headerCell)), self);
             column.index = self.columns.length;
-            column.filterExpression.subscribe(self.columnFilterChanged);
+            column.filterExpression.subscribe(v => self.columnFilterChanged(v));
 
             self.columns.push(column);
         });
@@ -205,7 +207,7 @@ class Grid {
         this._selector.find("thead tr:first() th").each((index, element) => {
 
             $(element)
-                .attr("data-bind", "attr { class: _columns[{0}].sortClass, title: _columns[{0}].sortClass }".format([index]))
+                .attr("data-bind", "attr { class: columns[{0}].sortClass, title: columns[{0}].sortClass }".format([index]))
                 .mousedown(e => self.applyColumnClick(e, self.columns[index]));
         });
     }

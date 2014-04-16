@@ -1,6 +1,6 @@
 ﻿<!-- Generates the cells per column -->
 <script type='text/html' id="grid-column-group">
-    <!-- ko foreach: $data._columns -->
+    <!-- ko foreach: $data.columns -->
     <col span="1" data-bind="attr: { style: 'width: ' + $data.width() + 'px' }" />
     <!-- /ko -->
 </script>
@@ -15,7 +15,7 @@
 
 <!-- Generates the cells per column -->
 <script type='text/html' id="grid-cells">
-    <!-- ko foreach: $data.grid._columns -->
+    <!-- ko foreach: $data.grid.columns -->
     <!-- ko if: $data.url -->
     <td data-bind="html: $data.formatUrl($parent.row, $parent.row[$data.name])" />
     <!-- /ko -->
@@ -39,7 +39,7 @@
 
 <!-- Column Editor -->
 <script type='text/html' id="grid-column-editor">
-    <!-- ko foreach: $data._columns -->
+    <!-- ko foreach: $data.columns -->
         <th>
             <div class="input-group" style="width:100%">
                 <input type="text" class="form-control" data-bind="value: $data.filteredValue, valueUpdate: 'afterkeydown'" />

@@ -165,10 +165,6 @@ pip-log.txt
 .DS_Store
 
 _backup
-GridExperiment/Scripts/Components/*.js
-GridExperiment/Scripts/Components/*.js.map
-
-GridExperiment/Scripts/string.js
-GridExperiment/Scripts/string.js.map
-
-
+GridExperiment/Scripts/Generated/
+GridExperiment/Scripts/Generated/Components/*.js
+GridExperiment/Scripts/Generated/Components/*.js.map
