@@ -61,3 +61,8 @@ div.grid tr:first-child th {
 
     cursor: pointer;
 }
+
+.dropdown-menu.filter {
+
+    width: 300px;
+}
