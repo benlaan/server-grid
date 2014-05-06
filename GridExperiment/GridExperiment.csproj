@@ -214,7 +214,11 @@
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
-    <TypeScriptCompile Include="Scripts\Components\Filter.ts" />
+    <TypeScriptCompile Include="Scripts\Components\Filters\DateRangeFilter.ts" />
+    <TypeScriptCompile Include="Scripts\Components\Filters\DefaultFilter.ts" />
+    <TypeScriptCompile Include="Scripts\Components\Filters\Filter.ts" />
+    <TypeScriptCompile Include="Scripts\Components\Filters\NumericFilter.ts" />
+    <TypeScriptCompile Include="Scripts\Components\Filters\SingleSelectFilter.ts" />
     <TypeScriptCompile Include="Scripts\Components\Knockout-Bindings.ts" />
     <TypeScriptCompile Include="Scripts\Components\Page.ts" />
     <TypeScriptCompile Include="Scripts\Components\Column.ts" />
