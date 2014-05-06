@@ -43,7 +43,7 @@
         <th>
             <div class="input-group" style="width:100%">
                 <input type="text" class="form-control" data-bind="value: $data.filteredValue, valueUpdate: 'afterkeydown'" />
-                <div class="input-group-btn input-small">
+                <div class="input-group-btn input-small dropdown">
                     <button type="button" class="btn btn-default dropdown-toggle" 
                             data-toggle="dropdown" 
                             data-bind="attr: { title: $data.filterExpression }">
@@ -59,7 +59,7 @@
 
 <!-- Default Filter -->
 <script type='text/template' id="grid-default-filter">
-    <ul class="dropdown-menu" data-bind="foreach: $data.items">
+    <ul class="dropdown-menu pull-right" data-bind="foreach: $data.items">
         <li role="presentation">
             <a role="menuitem" data-bind="click: $parent.filter._selectedOperation" >
                 <i class="glyphicon glyphicon-ok" data-bind="visible: $parent.filter.getSelectedClass($data)" />
@@ -76,18 +76,18 @@
             <div class="form-group">
                 <label class="col-sm-4 control-label">From</label>
                 <div class="col-sm-8">
-                    <input type="date" class="form-control" data-bind="value: startDate">
+                    <input class="form-control" data-bind="datepicker: startDate">
                 </div>
             </div>
             <div class="form-group">
                 <label class="col-sm-4 control-label">To</label>
                 <div class="col-sm-8">
-                    <input type="date" class="form-control" data-bind="value: endDate">
+                    <input class="form-control" data-bind="datepicker: endDate">
                 </div>
             </div>
             <div class="form-group">
                 <div class="col-sm-offset-8 col-sm-4">
-                    <button type="submit" class="btn btn-default">Submit</button>
+                    <button type="submit" class="btn btn-default" data-bind="click: applyFilter">Filter</button>
                 </div>
             </div>
         </form>

@@ -76,6 +76,13 @@ class Grid {
         ];
 
         _.each(templates, t => this.attachKnockoutBinding(t));
+
+        $(".dropdown").on({
+
+            "shown.bs.dropdown": () => $(this).data('closable', false),
+            "click": () => $(this).data('closable', true),
+            "hide.bs.dropdown": () => $(this).data('closable')
+        })
     }
 
     private attachKnockoutBinding(template: TemplateInfo) {

@@ -189,10 +189,10 @@ class DateRangeFilter extends Filter {
 
     constructor() {
 
+        super();
+
         this._startDate = ko.observable(new Date());
         this._endDate = ko.observable(new Date());
-
-        super();
     }
 
     public getExpression(): string {
@@ -200,10 +200,10 @@ class DateRangeFilter extends Filter {
         if (!this.column)
             return "";
 
-        return "{0} > '{1}' and {0} < '{2}'".format([
+        return "{0} > DateTime.Parse(\"{1}\") and {0} < DateTime.Parse(\"{2}\")".format([
             this.column.name,
-            this._startDate().toISOString(),
-            this._endDate().toISOString()
+            this._startDate().toLocaleDateString(),
+            this._endDate().toLocaleDateString()
         ]);
     }
 
@@ -211,13 +211,25 @@ class DateRangeFilter extends Filter {
 
         return {
 
-            startDate: this._startDate,
-            endDate: this._endDate
-        };
+            startDate:   this._startDate,
+            endDate:     this._endDate,
+            applyFilter: this.applyFilter
+        }
     }
 
     public getState(): any {
 
-        return this.getData();
+        return {
+
+            startDate: this._startDate,
+            endDate: this._endDate,
+        }
+    }
+
+    public applyFilter = (sender: any, e: Event) => {
+
+        this.recalculateFilter();
+
+        $(e.currentTarget).closest(".dropdown").removeClass("open");
     }
 }
