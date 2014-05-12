@@ -20,7 +20,7 @@ class Grid {
     private _rows: KnockoutObservableArray<any>;
     private _page: Page;
 
-    public columns: Column[];
+    public columns: KnockoutObservableArray<Column>;
     public filterExpression: KnockoutObservable<string>;
 
     // fake static constructor
@@ -39,6 +39,7 @@ class Grid {
         this._selector = $(name);
         this._config = this.evaluate(this._selector.attr("data-config"));
         this._rows = ko.observableArray();
+        this.columns = ko.observableArray<Column>([]);
 
         this.filterExpression = ko.observable("");
         this.filterExpression.subscribe(v => this.delayRefresh());
@@ -47,7 +48,6 @@ class Grid {
 
         this.applyGridClasses();
         this.defineColumns();
-        this.buildColumnHeaderBindings();
         this.attachKnockoutBindings();
 
         ko.applyBindings(this, this._selector.parent()[0]);
@@ -70,6 +70,7 @@ class Grid {
         var templates: TemplateInfo[] = [
 
             { element: "colgroup", name: "grid-column-group",  selector: (s: JQuery) => s.prependTo(id + "table")   },
+            { element: "tr",       name: "grid-column-header", selector: (s: JQuery) => s.appendTo(id + "thead")    },
             { element: "tr",       name: "grid-column-editor", selector: (s: JQuery) => s.appendTo(id + "thead")    },
             { element: "tbody",    name: "grid-rows",          selector: (s: JQuery) => s.appendTo(id + "table")    },
             { element: "div",      name: "grid-pager",         selector: (s: JQuery) => s.appendTo(id + "div.grid") }
@@ -97,7 +98,7 @@ class Grid {
 
         var parts = [];
 
-        _.each(this.columns, column => {
+        _.each(ko.utils.unwrapObservable(this.columns), column => {
 
             var filter = column.filterExpression();
             if (filter)
@@ -109,7 +110,7 @@ class Grid {
 
     private getGridState() {
 
-        var columns = _.map(this.columns, column => {
+        var columns = _.map(ko.utils.unwrapObservable(this.columns), column => {
 
             return {
 
@@ -162,26 +163,29 @@ class Grid {
     private defineColumns() {
 
         var self = this;
-        this.columns = [];
 
         this._selector.find("thead th").each((index, headerCell) => {
 
-            var columnData = $(headerCell).attr("data-column");
+            var $element = $(headerCell);
+            var columnData = $element.attr("data-column");
 
-            var column = new Column(self.evaluate(columnData) || self.getDefaultColumn($(headerCell)), self);
-            column.index = self.columns.length;
+            var column = new Column(self.evaluate(columnData) || self.getDefaultColumn($element), self);
+            column.displayName = $element.text();
+            column.index(index);
             column.filterExpression.subscribe(v => self.columnFilterChanged(v));
 
             self.columns.push(column);
         });
+
+        this._selector.find("thead tr").remove();
     }
 
-    private applyColumnClick(event: JQueryMouseEventObject, column: Column) {
+    public updateColumnSort(event: JQueryMouseEventObject, column: Column) {
 
         if (!event.ctrlKey) {
 
             // reset all sort modes to none except the column selected
-            _(this.columns)
+            _(ko.utils.unwrapObservable(this.columns))
                 .without(column)
                 .forEach(c => c.sort(SortMode.None));
         }
@@ -189,7 +193,7 @@ class Grid {
 
             // instead of resetting, set the sort index of the selected column to the next index
             var nextSortIndex = _
-                .chain(this.columns)
+                .chain(ko.utils.unwrapObservable(this.columns))
                 .without(column)
                 .map(c => c.sortIndex())
                 .max()
@@ -197,19 +201,6 @@ class Grid {
 
             column.sortIndex(nextSortIndex + 1);
         }
-
-        column.click();
-    }
-
-    private buildColumnHeaderBindings() {
-
-        var self = this;
-        this._selector.find("thead tr:first() th").each((index, element) => {
-
-            $(element)
-                .attr("data-bind", "attr { class: columns[{0}].sortClass, title: columns[{0}].sortClass }".format([index]))
-                .mousedown(e => self.applyColumnClick(e, self.columns[index]));
-        });
     }
 
     private postJson<T>(url: string, data: any, success: (response: T) => void)
@@ -258,6 +249,21 @@ class Grid {
 
         clearTimeout(this._refreshTimer);
         this._refreshTimer = setTimeout(() => this.render(), 1000);
+    }
+
+    public reorderColumns(sourceIndex: number, destinationIndex: number) {
+
+        var columns = ko.utils.unwrapObservable(this.columns);
+
+        var sourceColumn = _(columns).find(c => c.index() == sourceIndex);
+        if(!sourceColumn)
+            return;
+
+        var sign = sourceIndex > destinationIndex ? -1 : 1;
+        sourceColumn.index(destinationIndex + sign);
+
+        this.columns.sort((c1, c2) => c1.index() > c2.index() ? 1 : -1);
+        columns.forEach((c, i) => c.index(i));
     }
 
     public render() {

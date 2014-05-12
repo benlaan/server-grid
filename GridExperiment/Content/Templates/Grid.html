@@ -5,6 +5,14 @@
     <!-- /ko -->
 </script>
 
+<!-- Column Editor -->
+<script type='text/html' id="grid-column-header">
+    <!-- ko foreach: $data.columns -->
+    <th data-bind="text: displayName,  click: mouseUp, attr: { class: sortClass, title: sortClass }, event: { dragstart: dragStart, drop: drop, dragleave: dragLeave, dragover: dragOver }"
+        draggable="true" />
+    <!-- /ko -->
+</script>
+S
 <!-- Generates the rows and columns -->
 <script type='text/html' id="grid-rows">
     <!-- ko foreach: $data._rows -->

@@ -57,6 +57,16 @@ th.Desc {
     background-size: 10px;
 }
 
+th.drag {
+    background-image: url('/Content/drag.png');
+    background-repeat: no-repeat;
+    background-position: right;
+    background-origin: content-box;
+    background-size: 32px;
+    background-position-x: -20px;
+    z-index: 1000;
+}
+
 div.grid tr:first-child th {
 
     cursor: pointer;

@@ -8,6 +8,11 @@ enum SortMode {
     Desc
 }
 
+interface JQueryDragEvent {
+
+    originalEvent: DragEvent;
+}
+
 interface ColumnDefinition {
 
     url: string;
@@ -35,7 +40,8 @@ class Column {
 
     public url: string;
     public name: string;
-    public index: number;
+    public displayName: string;
+    public index: KnockoutObservable<number>;
     public filterTemplate: string;
 
     constructor(column: ColumnDefinition, grid: Grid) {
@@ -44,6 +50,7 @@ class Column {
         this.name = column.name;
         this.url = column.url;
         this.filterTemplate = column.filterTemplate;
+        this.index = ko.observable(0);
 
         var self = this;
 
@@ -71,7 +78,9 @@ class Column {
         });
     }
 
-    click() {
+    private mouseUp = (event: JQueryMouseEventObject) => {
+
+        this._grid.updateColumnSort(event, this);
 
         switch (this.sort())
         {
@@ -84,6 +93,34 @@ class Column {
                 this.sort(SortMode.Desc);
                 break;
         }
+    }
+
+    public drop = (data: any, e: JQueryDragEvent) => {
+
+        var sourceIndex = parseInt(e.originalEvent.dataTransfer.getData("ColumnIndex"), 10);
+        
+        this._grid.reorderColumns(sourceIndex, this.index());
+
+        e.originalEvent.preventDefault();
+        $(e.originalEvent.currentTarget).removeClass("drag");
+    }
+
+    public dragStart = (data: any, e: JQueryDragEvent) => {
+
+        e.originalEvent.dataTransfer.setData("ColumnIndex", this.index().toString());
+        return true;
+    }
+
+    public dragOver = (data: any, e: Event) => {
+
+        // indicates that drop is allowed...
+        e.preventDefault();
+        $(e.currentTarget).addClass("drag");
+    }
+
+    public dragLeave = (data: any, e: Event) => {
+
+        $(e.currentTarget).removeClass("drag");
     }
 
     formatUrl(data, value) {
