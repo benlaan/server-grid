@@ -212,27 +212,46 @@ class Grid {
         });
     }
 
+    private postJson<T>(url: string, data: any, success: (response: T) => void)
+    {
+        $.ajax({
+            type: "POST",
+            data :JSON.stringify(data),
+            url: url,
+            contentType: "application/json",
+            success: success
+        });
+    }
+
     private bindData(gridState: any) {
 
         var self = this;
 
-        $.getJSON(this._config.uri + "/GetData", gridState, response => {
+        this.postJson(
+            this._config.uri + "/GetData",
+            gridState,
+            (response: any[]) => {
 
-            self._rows(response);
-            self._lastFilter = self.filterExpression();
-        });
+                self._rows(response);
+                self._lastFilter = self.filterExpression();
+            }
+        );
     }
 
     private updateRowCount(gridState: any) {
 
         var self = this;
 
-        $.get(this._config.uri + "/GetRowCount", gridState, (response: number) => {
+        this.postJson(
+            this._config.uri + "/GetRowCount",
+            gridState,
+            (response: number) => {
 
-            self._page.setRowCount(response);
-            self._rowCount = response;
-            self.bindData(gridState);
-        });
+                self._page.setRowCount(response);
+                self._rowCount = response;
+                self.bindData(gridState);
+            }
+        );
     }
 
     private delayRefresh() {

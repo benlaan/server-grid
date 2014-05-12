@@ -135,14 +135,15 @@ namespace GridExperiment.Controllers
             return query;
         }
 
-        [HttpGet]
-        public int GetRowCount([FromUri]GridState grid)
+        [HttpPost]
+        public int GetRowCount([FromBody]GridState grid)
         {
             return GetQuery(grid).Count();
         }
 
         // GET api/<controller>
-        public IEnumerable<Person> GetData([FromUri]GridState grid)
+        [HttpPost]
+        public IEnumerable<Person> GetData([FromBody]GridState grid)
         {
             var query = GetQuery(grid);
 
